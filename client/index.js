@@ -365,7 +365,7 @@ function mountMiniPlayer({ t, lang, store, player }) {
   document.body.appendChild(host)
   // 信息行：与控制条同宽紧贴成一张卡；文字超宽自动来回滚动（跑马灯）
   const infoLine = document.createElement('div')
-  infoLine.style.cssText = 'display:none;overflow:hidden;white-space:nowrap;font-size:11px;color:#c8cdd8;background:rgba(20,22,28,.72);padding:5px 12px 3px;border:1px solid rgba(127,127,127,.22);border-bottom:none;border-radius:10px 10px 0 0'
+  infoLine.style.cssText = 'display:none;overflow:hidden;white-space:nowrap;font-size:11px;color:#c8cdd8;background:rgba(20,22,28,.72);padding:5px 12px 3px;border:1px solid rgba(127,127,127,.22);border-bottom:none;border-radius:10px 10px 0 0;text-align:left'
   const infoText = document.createElement('span')
   infoText.style.cssText = 'display:inline-block;white-space:nowrap;padding-right:16px'
   infoLine.appendChild(infoText)
