@@ -1,55 +1,57 @@
-# dsh-ambient（白噪音）
+# @weibaohui/dsh-ambient
 
-> dsh 插件 · 白噪音播放器：**场景完全由音频根目录下的文件夹决定——有什么文件夹就有什么场景，有什么音频就播什么。** 点「🤖 执行下载」让 AI 在后台从 Wikimedia Commons 按 CC0/PD/CC BY 许可分门别类下载到对应文件夹（读 INDEX.md 防重复）。顺序/随机/单曲循环/间歇四种播放模式 + N 小时或指定时刻定时关。宿主侧流式读取（Range 支持），不上传、不分发音频。
+[![DSH plugin](https://img.shields.io/badge/dsh-plugin-green)](https://github.com/topics/dsh-plugin)
+[![npm version](https://img.shields.io/npm/v/@weibaohui/dsh-ambient)](https://www.npmjs.com/package/@weibaohui/dsh-ambient)
 
-## 特性
+**白噪音播放器**：场景完全由音频根目录下的文件夹决定——有什么文件夹就有什么场景，有什么音频就播什么。点「执行下载」让 AI 在后台从 Wikimedia Commons 按 CC0/PD/CC BY 许可分门别类下载到对应文件夹（读 INDEX.md 防重复、完成自动刷新库）。顺序/随机/单曲循环/间歇四种播放模式，定时关支持 N 小时或指定时刻。宿主侧流式读取（Range 支持），不上传、不分发音频。
 
-- 📁 **场景纯目录驱动** —— libraryRoot 下每个子文件夹 = 一个场景（文件夹名即场景名），有什么算什么。无预制清单、无别名匹配、无程序化兜底。建文件夹即建场景，删文件夹即删场景。
-- 🤖 **后台 AI 下载** —— 设置页点「执行下载」，宿主起后台 agent 会话（apiproxy 主对话，带 bash）自主执行：读 INDEX.md 跳过已有 → 搜 Wikimedia Commons API → 下载到对应场景文件夹 → 更新 INDEX.md/ATTRIBUTION.txt → 完成自动重扫库。按钮下方实时显示进度。
-- 🎚️ **播放控制** —— 顺序循环 / 随机 / 单曲循环 / 间歇（20 放 5 停）四种模式；定时关支持 N 小时后或到指定时刻（HH:MM）。
-- 🔊 **流式播放** —— 宿主侧 HTTP Range 流式（可拖进度），路径安全校验（防穿越），客户端只按 scene+track 下标请求、不接触绝对路径。
-- 🛡️ **信任栅栏** —— 所有路由挂 `connection.requestRejection`（Host/Origin + 浏览器认证）。
-- 📦 **零音频分发** —— 插件包内零音频文件；INDEX.md/ATTRIBUTION.txt 记录来源与许可。
+## 核心功能
 
-## 音频怎么来
+- **场景纯目录驱动**：libraryRoot 下每个子文件夹 = 一个场景（文件夹名即场景名），有什么算什么——无预制清单、无别名匹配。建文件夹即建场景，删文件夹即删场景；分类由用户自定或 AI 下载时自动归类
+- **后台 AI 下载**：设置页点「执行下载」，宿主起后台 agent 会话（apiproxy 主对话，带 bash）自主执行——读 INDEX.md 跳过已有 → 搜 Wikimedia Commons API（免 key）→ 下载到对应场景文件夹 → 更新 INDEX.md/ATTRIBUTION.txt → 完成自动重扫库；按钮下方实时显示 AI 执行进度；单并发，完成或 30 分钟超时收尾
+- **智能音量（淡入淡出）**：起播/切歌/恢复从 0 淡入 3 秒；暂停 2.5 秒、手动切歌 1.2 秒交叉淡化、定时关 4 秒长淡出——音量主体保持设定值恒定，只有边界渐变，不炸耳
+- **四种播放模式**：顺序循环 / 随机 / 单曲循环 / 间歇（放 20 分钟停 5 分钟）
+- **跨场景播放**：勾选后上一首/下一首与循环在全库所有场景间进行；不勾仅在选中场景内
+- **收藏与只播收藏**：播放控制器心形按钮收藏当前轨（键=`场景id/文件名`，持久化）；勾选「只播收藏」播放池=收藏的轨；收藏池为空时自动回退全库，控制永不变死
+- **定时关**：播放 N 小时后停（关/30 分钟/1/2/4/8 小时），或到指定时刻停（HH:MM，跨天正确）——睡前听场景
+- **迷你播放器**：右下角浮窗，可拖动（位置记忆）、可收缩成小圆球（播放态绿色）、♥ 收藏、场景切换、音量竖向弹出；上方信息行实时显示当前播放场景+文件
+- **流式播放**：宿主侧 HTTP Range 流式（可拖进度），路径安全校验（防穿越），客户端只按 scene+track 下标请求、不接触绝对路径
+- **零音频分发**：插件包内零音频文件；来源与许可记录在 INDEX.md/ATTRIBUTION.txt
 
-插件**不分发任何音频**。三条路：
+## 安装
 
-1. **🤖 后台 AI 下载**（推荐）—— 设置页点「执行下载」，AI 后台跑：从 [Wikimedia Commons](https://commons.wikimedia.org/)（免 key、CC0/CC 许可）按场景搜索并下载到对应文件夹，维护 INDEX.md（下载关系追溯，防重复）与 ATTRIBUTION.txt（许可署名）。
-2. **自己放音频** —— 把 `.mp3/.wav/.ogg/.m4a/.flac` 等放进 libraryRoot 下的任意子文件夹（中英文名均可），点「扫描」或重启即识别。
-3. 场景名随意 —— 「雨」「rain」「我家后院」「午休室」……文件夹名就是场景名。
+```bash
+dsh plugin --profile web add @weibaohui/dsh-ambient -w
+```
+
+装完重启 `dsh web` 即生效。
+
+## 使用
+
+1. 打开 Web UI → **设置页 → 白噪音**，点「🤖 执行下载」——后台 AI 自动建场景文件夹并从 Wikimedia Commons 下载氛围音（迷你播放器上方信息行实时显示进度）；也可以自己往音频根目录（默认 `~/.dsh/dsh-ambient/library/`）的子文件夹里放音频文件，点「扫描」
+2. 场景下拉选一个（或直接用迷你播放器切），勾选启用（或点迷你播放器 ▶），即播
+3. 播放模式/定时关/跨场景/收藏在设置页调整；日常控制用右下角迷你播放器
+4. 想加新场景：建文件夹放音频（名字随意），或再跑一次 AI 下载
 
 ## AI 下载是怎么跑的
 
 点击「执行下载」后，宿主通过 apiproxy（BrowserAuth cookie + 斜杠 RPC，dsh-sync 同款机器）创建一个**主对话级 agent 会话**（带 bash），把无人值守下载指令发给它，事件泵 300ms 抓取执行输出。你会在按钮下方看到实时进度（`[tool] bash curl …`），完成（或 30 分钟超时）后自动重扫库。单并发：有任务在跑时再点会显示当前进度。
 
-指令要点（源码 `src/index.js` 的 `DOWNLOAD_AGENT_PROMPT`）：读 INDEX.md 跳过已有 → 按场景搜 Commons API → 许可优先 PD/CC0 > CC BY > CC BY-SA → 下载到对应文件夹 → 逐文件更新索引与署名 → 无人值守不提问。实测已知结论也写进去了：山林/沙漠/轮船/田野在 Commons 无合适录音，每个场景搜索预算 ≤2 分钟。
+指令要点（源码 `src/index.js` 的 `DOWNLOAD_AGENT_PROMPT`）：
 
-## 使用
+- 先读 `INDEX.md`：已在表里的来源 URL 跳过、不重复下载；每下载一个文件追加一行
+- 按「场景英文 + sound + filetype:audio」搜 Wikimedia Commons API，许可优先 PD/CC0 > CC BY > CC BY-SA
+- 下载到对应场景文件夹（文件夹名中英文均可，未命中内置场景的自动成为自定义场景）
+- 逐文件更新 INDEX.md（追溯）与 ATTRIBUTION.txt（署名）；无人值守不提问
 
-1. 安装后重启 dsh：设置页出现「场景氛围音」，右下角出现迷你播放器（播放/暂停/场景/音量）。
-2. 库为空时：点「🤖 执行下载」（后台自动下载），或自己在音频根目录建文件夹放音频，点「扫描」。
-3. 场景下拉选一个，勾选启用（或直接点迷你播放器 ▶），即播。
-4. 播放模式/定时关在设置页调整。
+## 播放控制
 
-## 文件夹结构
+- **播放模式**（playMode）：`顺序循环` / `随机` / `单曲循环` / `间歇`（放 20 分钟停 5 分钟）
+- **跨场景播放**（crossScene）：勾选后上一首/下一首与循环在全库所有场景间进行；不勾仅在选中场景内
+- **收藏与只播收藏**：心形按钮收藏当前轨（键=`场景id/文件名`），勾选「只播收藏」播放池=收藏的轨；收藏池为空自动回退全库
+- **定时关**（sleepHours / sleepAtTime）：N 小时后停，或到指定时刻（HH:MM）停；到点 4 秒长淡出
 
-```
-~/.dsh/dsh-ambient/library/     ← 默认音频根目录（存在即自动采用）
-  ├── 雨/
-  │   ├── 01-小雨.mp3
-  │   └── 02-大雨.mp3
-  ├── my-office/
-  │   └── hum.ogg
-  └── 我家后院/
-      └── garden.mp3
-INDEX.md                        ← 下载索引（AI 维护，防重复下载）
-ATTRIBUTION.txt                 ← 许可署名（AI 维护）
-```
-
-- 文件夹名 = 场景名（中英文、任意名字均可）
-- 每个文件夹里的音频按文件名排序播放（`01-` 前缀可控顺序）
-- 空文件夹不成场景；子文件夹会递归收音频
+播放池优先级：`只播收藏 > 跨场景 > 当前场景`。池选项变化时尽量保住当前轨无缝续播。
 
 ## 架构
 
@@ -57,10 +59,10 @@ ATTRIBUTION.txt                 ← 许可署名（AI 维护）
 |---|---|
 | `src/index.js` | 宿主半体：配置持久化（storageDomain `dsh_ambient`）、纯目录扫描、音频流式路由（Range + 路径安全 + 信任栅栏）、后台 AI 下载任务（apiproxy 主会话 + 事件泵 + 30 分钟超时 + 完成自动重扫） |
 | `client/scenes.js` | 音频扩展名 + MIME 表（host/client 共享） |
-| `client/player.js` | 播放控制器：file/url 声源、四种播放模式、定时关（N 小时 / 指定时刻）、音量统一 |
-| `client/index.js` | 客户端半体：store + 设置页（React）+ 迷你播放器（纯 DOM 浮窗）+ 下载任务轮询 |
+| `client/player.js` | 播放控制器：曲池抽象（收藏 > 跨场景 > 当前场景）、四种播放模式、智能音量淡入淡出、定时关 |
+| `client/index.js` | 客户端半体：store + 设置页（React）+ 迷你播放器（可拖动/可收缩浮窗）+ 下载任务轮询 |
 | `client/bundle.js` | 构建产物（`npm run build:client`） |
-| `scripts/build-client.mjs` | 内联 player + index + dsh-plugin-kit client source 成 bundle |
+| `scripts/build-client.mjs` | 内联 player + index 成 bundle |
 | `test/config.test.mjs` | 离线测试：配置归一化、纯目录扫描、路径安全、Range、库响应、后台下载 wire 形态 |
 | `test/smoke-host.mjs` | 宿主路由集成测试：audio 200/206/404、信任栅栏、library 纯目录 |
 
@@ -69,25 +71,36 @@ ATTRIBUTION.txt                 ← 许可署名（AI 维护）
 ```bash
 npm run check          # 语法检查（src + 3 client）
 npm test               # 离线测试
-npm run build:client   # 重新生成 bundle（改了 client/*.js 必须重跑）
+npm run build:client   # player + index → client/bundle.js
 node --test test/smoke-host.mjs   # 宿主路由集成测试
 ```
 
+link 安装的实例改完源码 `npm run build:client` 后刷新页面即生效。
+
 ## 设计要点（来自系列插件真实事故）
 
-- **storageDomain 表 spec 必须带 `valueSchema`** —— 缺了它存量记录一旦存在整个域打不开（dsh-matrix/fireworks 翻车）。本插件 `valueSchema: { parse: (v) => v }` + `invalidRecords: 'backup-and-skip'`。
-- **后台 agent 用 apiproxy 主会话而非 agents.create 子 agent** —— 下载要 bash（curl 二进制音频），子 agent 精简无 bash（dsh-sync 实证）。
-- **BrowserAuth cookie 铸造** —— 0.1.2-rc.1 起 `/api` 无凭证一律 401：先 GET `connection.authenticatedUrl()`（303 铸 dsh-auth-* cookie）再带 Cookie 头；RPC 斜杠端点 + `{args:{request}}` 包裹；404 回退 0.1.1 点号端点。
-- **音频路由路径安全** —— `path.resolve` 后校验必须落在 libraryRoot 子树内；客户端只传 scene+track 下标。
-- **迷你播放器回调先捕获值再调 player** —— setVolume→emit→render 会同步重置滑块 value，之后再读 slider.value 拿到旧值（真机抓过：音量永远存不上）。
-- **配置场景回退** —— 场景纯目录驱动，config.scene 可能指向已删文件夹：库加载时找不到就回退第一个场景并写回。
+- **storageDomain 表 spec 必须带 `valueSchema`** —— 缺了它存量记录一旦存在整个域打不开（dsh-matrix/fireworks 翻车）。本插件 `valueSchema: { parse: (v) => v }` + `invalidRecords: 'backup-and-skip'`
+- **后台 agent 用 apiproxy 主会话而非 agents.create 子 agent** —— 下载要 bash（curl 二进制音频），子 agent 精简无 bash（dsh-sync 实证）
+- **BrowserAuth cookie 铸造** —— 0.1.2-rc.1 起 `/api` 无凭证一律 401：先 GET `connection.authenticatedUrl()`（303 铸 dsh-auth-* cookie）再带 Cookie 头；RPC 斜杠端点 + `{args:{request}}` 包裹；404 回退 0.1.1 点号端点
+- **音频路由路径安全** —— `path.resolve` 后校验必须落在 libraryRoot 子树内；客户端只传 scene+track 下标
+- **迷你播放器回调先捕获值再调 player** —— setVolume→emit→render 会同步重置滑块 value，之后再读 slider.value 拿到旧值（真机抓过：音量永远存不上）
+- **配置场景回退** —— 场景纯目录驱动，config.scene 可能指向已删文件夹：库加载时找不到就回退第一个场景并写回
+- **淡入淡出用感知幂曲线（t^1.6）** —— 听觉近对数，线性衰减听感前段拖尾后段陡降，幂曲线更均匀
+
+## 联系我 :飞书群
+
+![link](https://foruda.gitee.com/images/1774880015525784725/4fd67005_77493.png "link")
+
+## 版本兼容性
+
+本插件与 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`@deepseek-ai/dsh`）的版本对应关系：
+
+| 插件版本 | 适配 dsh 版本 | 备注 |
+|---------|--------------|------|
+| 0.1.0 | 0.2.0-rc.2 | 首个公开版本（在 0.2.0-rc.2 真机验证）；engines 声明最低 0.1.7-rc.2。场景纯目录驱动（有什么文件夹就有什么场景）；后台 AI 下载（apiproxy 主会话 + INDEX.md 防重复 + 完成自动重扫）；跨场景/收藏/只播收藏；四种播放模式；智能音量淡入淡出；定时关支持 N 小时与指定时刻；迷你播放器可拖动可收缩 |
+
+> **发版约定**：每次发布新版本时，请在上表追加一行，记录该插件版本实际验证所用的 `@deepseek-ai/dsh` 版本。`package.json` 的 `engines.dsh` 声明最低支持版本；本表记录实际验证版本，二者配合使用。
 
 ## License
 
 MIT
-
-## 致谢
-
-- [Wikimedia Commons](https://commons.wikimedia.org/) —— CC0/CC 氛围音来源（免 key、直链稳定）
-- dsh-sync —— apiproxy 后台 agent 会话模式来源
-- dsh-kb —— 无人值守执行器（agents.create + whenIdle）与「问 AI」交互参考
