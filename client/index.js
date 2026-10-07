@@ -27,8 +27,8 @@ const API = '/dsh-ambient/api'
 // 后台 AI 下载：指令文本在 src/index.js 的 DOWNLOAD_AGENT_PROMPT（host 侧发给 agent），客户端只 POST/轮询任务状态。
 
 const ZH = {
-  nav: '场景氛围音',
-  intro: '场景氛围音播放器——场景完全由「音频根目录」下的文件夹决定，有什么文件夹就有什么场景，有什么音频就播什么。点下方「🤖 执行下载」让 AI 从 Wikimedia Commons 按 CC0/PD/CC BY 许可分门别类下载到对应文件夹，或自己放音频文件进去。',
+  nav: '白噪音',
+  intro: '白噪音播放器——场景完全由「音频根目录」下的文件夹决定，有什么文件夹就有什么场景，有什么音频就播什么。点下方「🤖 执行下载」让 AI 从 Wikimedia Commons 按 CC0/PD/CC BY 许可分门别类下载到对应文件夹，或自己放音频文件进去。',
   enabled: '启用氛围音',
   enabledHint: '勾选后开始播放当前场景（需点播放或切场景触发，浏览器要求用户手势）。',
   scene: '场景',
@@ -93,7 +93,7 @@ const ZH = {
   saved: '已保存 ✓',
 }
 const EN = {
-  nav: 'Ambient Sounds',
+  nav: 'White Noise',
   intro: 'Scene ambient player — scenes come purely from folders under the audio root: whatever folders exist are the scenes. Click the AI download button to have an agent fetch CC0/PD/CC BY recordings from Wikimedia Commons into the matching folders, or drop your own audio in.',
   enabled: 'Enable ambient',
   enabledHint: 'Starts playing the current scene (click Play or switch scene to trigger — browsers require a gesture).',
