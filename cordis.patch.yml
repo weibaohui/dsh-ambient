@@ -1,0 +1,13 @@
+# dsh-plugin-dsh-ambient bundle patch: contributes the plugin row into the
+# host composition when this package is installed via `dsh plugin add`.
+#
+# The plugin is HOST-PLANE in the thinnest sense: the host half persists the
+# user's scene/volume/library config (storageDomain), scans a local audio
+# folder for per-scene audio files, and streams those files to the web shell
+# with HTTP range support (seeking). Procedural Web Audio noise for nature
+# scenes is generated entirely client-side (no host route). It must land in
+# the host composition (this insert), never inside an agent preset.
+
+- insert:
+    - id: dsh-ambient
+      name: '@weibaohui/dsh-ambient'
