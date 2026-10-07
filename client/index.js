@@ -361,8 +361,15 @@ const svgIcon = (name, size) => '<svg viewBox="0 0 24 24" width="' + (size || 14
 
 function mountMiniPlayer({ t, lang, store, player }) {
   const host = document.createElement('div')
-  host.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:2147482400;display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(20,22,28,.82);color:#e6e8ec;border:1px solid rgba(127,127,127,.22);border-radius:10px;backdrop-filter:blur(6px);font-size:12px;font-family:var(--dsw-font-family,system-ui,sans-serif);touch-action:none'
+  host.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:2147482400;display:flex;flex-direction:column;align-items:flex-end;gap:3px;color:#e6e8ec;font-family:var(--dsw-font-family,system-ui,sans-serif);touch-action:none'
   document.body.appendChild(host)
+  // 信息行：当前播放场景+文件（状态一变立即更新，按钮点击即时反馈）
+  const infoLine = document.createElement('div')
+  infoLine.style.cssText = 'display:none;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#c8cdd8;background:rgba(20,22,28,.72);padding:3px 10px;border-radius:8px;border:1px solid rgba(127,127,127,.15);text-align:right'
+  host.appendChild(infoLine)
+  const bar = document.createElement('div')
+  bar.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(20,22,28,.82);border:1px solid rgba(127,127,127,.22);border-radius:10px;backdrop-filter:blur(6px);font-size:12px;touch-action:none'
+  host.appendChild(bar)
 
   const MINI_KEY = 'dsh-ambient-mini'
   const loadMiniState = () => { try { return JSON.parse(localStorage.getItem(MINI_KEY) || 'null') || {} } catch { return {} } }
@@ -461,7 +468,7 @@ function mountMiniPlayer({ t, lang, store, player }) {
   collapseBtn.innerHTML = svgIcon('minus', 13)
   collapseBtn.title = '收起'
   collapseBtn.style.cssText = 'background:transparent;border:none;color:#8a92a4;cursor:pointer;padding:0 2px;display:flex;align-items:center'
-  host.appendChild(grip); host.appendChild(prevBtn); host.appendChild(playBtn); host.appendChild(nextBtn); host.appendChild(shufBtn); host.appendChild(favBtn); host.appendChild(sceneWrap); host.appendChild(volWrap); host.appendChild(collapseBtn)
+  bar.appendChild(grip); bar.appendChild(prevBtn); bar.appendChild(playBtn); bar.appendChild(nextBtn); bar.appendChild(shufBtn); bar.appendChild(favBtn); bar.appendChild(sceneWrap); bar.appendChild(volWrap); bar.appendChild(collapseBtn)
   // 收起弹出面板（点外部 / 再点图标）
   const closeVolPop = () => { volPop.style.display = 'none'; volBtn.dataset.open = '' }
   const toggleVolPop = () => {
@@ -568,6 +575,7 @@ function mountMiniPlayer({ t, lang, store, player }) {
     if (volBtn.dataset.open && Math.abs((Number(volSlider.value) || 0) - (config.volume || 0)) > 0.001) volSlider.value = config.volume || 0
     // 展开控件 vs 收缩圆球
     for (const el of [grip, prevBtn, playBtn, nextBtn, shufBtn, favBtn, sceneWrap, volWrap, collapseBtn]) el.style.display = collapsed ? 'none' : ''
+    infoLine.style.display = collapsed || !sc.trackName ? 'none' : 'block'
     if (collapsed) { closeVolPop(); closeScenePop() }
     ball.style.display = collapsed ? 'block' : 'none'
     if (collapsed) {
@@ -595,6 +603,11 @@ function mountMiniPlayer({ t, lang, store, player }) {
     sceneBtn.title = so ? t('scene') + ': ' + sceneName(so, lang) : t('scene')
     renderSceneList()
     volSlider.value = config.volume || 0
+    // 信息行：当前播放场景+文件（任意按钮点击后立即更新）
+    if (sc && sc.trackName) {
+      infoLine.style.display = 'block'
+      infoLine.textContent = (sc.playing ? '▶ ' : '⏸ ') + sceneName(so, lang) + ' · ' + sc.trackName + (sc.poolFallback ? ' · ⚠ 收藏池空，播放全部' : '')
+    } else infoLine.style.display = 'none'
   }
   store.subscribe(render)
   render()
