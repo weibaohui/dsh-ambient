@@ -26,12 +26,12 @@
 const PLAYER_API = '/dsh-ambient/api'
 const PLAY_MODES = ['sequential', 'shuffle', 'single-loop', 'interval']
 
-const FADE_IN_MS = 1500        // 起播/切歌淡入
-const FADE_OUT_MS = 800        // 暂停/切出淡出
-const FADE_SWITCH_MS = 300     // 手动切歌的快速淡出
-const FADE_SCENE_MS = 500      // 切场景淡出
-const FADE_INTERVAL_MS = 2000  // 间歇模式进出缓变
-const FADE_SLEEP_MS = 3000     // 定时关长淡出
+const FADE_IN_MS = 3000        // 起播/切歌淡入（3 秒，明显可感知）
+const FADE_OUT_MS = 2500       // 暂停/切出淡出（2.5 秒）
+const FADE_SWITCH_MS = 1200    // 手动切歌交叉淡化（1.2 秒）
+const FADE_SCENE_MS = 1200     // 切场景淡出
+const FADE_INTERVAL_MS = 3500  // 间歇模式进出缓变
+const FADE_SLEEP_MS = 4000     // 定时关长淡出
 const INTERVAL_ON_MS = 20 * 60 * 1000
 const INTERVAL_OFF_MS = 5 * 60 * 1000
 
