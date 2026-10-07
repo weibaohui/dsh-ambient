@@ -71,6 +71,7 @@ function createAmbientPlayer() {
   let sleepTimer = null
   let intervalTimer = null
   let intervalOn = true
+  let poolFallback = false   // true=收藏/跨场景池为空，回退全库播放（UI 可据此提示）
 
   const emit = () => { if (typeof onState === 'function') { try { onState(state()) } catch {} } }
   const current = () => pool[poolIdx] || null
@@ -86,6 +87,7 @@ function createAmbientPlayer() {
       trackScene: p ? p.sceneLabel : null,
       trackKey: p ? p.key : null,
       isFavorite: p ? favs.has(p.key) : false,
+      poolFallback,
       intervalOn: playMode === 'interval' ? intervalOn : null,
     }
   }
@@ -167,6 +169,20 @@ function createAmbientPlayer() {
     return 0
   }
 
+  /** 构建池；收藏/跨场景池为空时回退全库（保证播放控制永远可用）。 */
+  const applyPool = (keepKey) => {
+    pool = buildPool(currentScene, library, poolCfg)
+    if (pool.length === 0 && (poolCfg.favoritesOnly || poolCfg.crossScene)) {
+      pool = buildPool(currentScene, library, {})
+      poolFallback = true
+    } else {
+      poolFallback = false
+    }
+    const keepIdx = keepKey ? pool.findIndex((p) => p.key === keepKey) : -1
+    if (keepIdx >= 0) poolIdx = keepIdx
+    else poolIdx = initPoolIdx()
+  }
+
   const setScene = (scene, opts) => {
     opts = opts || {}
     currentScene = scene
@@ -177,8 +193,7 @@ function createAmbientPlayer() {
       favorites: opts.config ? (opts.config.favorites || []) : [],
     }
     silence()
-    pool = buildPool(scene, library, poolCfg)
-    poolIdx = initPoolIdx()
+    applyPool()
     if (playing && pool.length > 0) { resumePlayback(); if (playMode === 'interval') startInterval() }
     emit()
   }
@@ -192,17 +207,10 @@ function createAmbientPlayer() {
     }
     library = lib || library
     const keep = current()
-    pool = buildPool(currentScene, library, poolCfg)
-    const keepIdx = keep ? pool.findIndex((p) => p.key === keep.key) : -1
-    if (keepIdx >= 0) {
-      poolIdx = keepIdx
-      if (playing) playEntry(current())
-    } else {
-      poolIdx = initPoolIdx()
-      if (playing) {
-        if (pool.length > 0) { resumePlayback(); if (playMode === 'interval') startInterval() }
-        else silenceAudio()
-      }
+    applyPool(keep ? keep.key : null)
+    if (playing) {
+      if (pool.length > 0) { resumePlayback(); if (playMode === 'interval') startInterval() }
+      else silenceAudio()
     }
     emit()
   }
@@ -257,6 +265,7 @@ function createAmbientPlayer() {
   const dispose = () => { silence(); if (audio) { try { audio.pause() } catch {} } }
 
   return { setScene, setPoolOptions, play, pause, setVolume, setPlayMode, setSleepMs, setSleepAtTime, nextTrack, prevTrack, dispose, state,
+    __debug: () => ({ pool: pool.map((p) => p.key), poolIdx, playMode, sleepMs, sleepAtTime, playing, poolCfg, poolFallback, volume }),
     get onState() { return onState }, set onState(fn) { onState = fn } }
 }
 
