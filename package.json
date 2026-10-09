@@ -1,6 +1,6 @@
 {
   "name": "@weibaohui/dsh-ambient",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "dsh 插件 · 白噪音播放器：场景完全由音频根目录下的文件夹决定（有什么算什么），点「执行下载」让 AI 后台从 Wikimedia Commons 按 CC0/PD/CC BY 分门别类下载到对应文件夹。顺序/随机/单曲循环/间歇四种播放模式 + N 小时或指定时刻定时关。宿主侧流式读取（Range 支持），不上传不分发。",
   "license": "MIT",
   "keywords": [
