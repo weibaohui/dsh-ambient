@@ -578,6 +578,7 @@ function mountMiniPlayer({ t, lang, store, player }) {
     if (volBtn.dataset.open && Math.abs((Number(volSlider.value) || 0) - (config.volume || 0)) > 0.001) volSlider.value = config.volume || 0
     // 展开控件 vs 收缩圆球
     for (const el of [grip, prevBtn, playBtn, nextBtn, shufBtn, favBtn, sceneWrap, volWrap, collapseBtn]) el.style.display = collapsed ? 'none' : ''
+    bar.style.display = collapsed ? 'none' : 'flex'   // 控制条外壳（padding/背景/边框）一并隐藏，否则收缩态残留半截空壳
     infoLine.style.display = collapsed || !sc.trackName ? 'none' : 'block'
     if (collapsed) { closeVolPop(); closeScenePop() }
     ball.style.display = collapsed ? 'block' : 'none'
