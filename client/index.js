@@ -22,7 +22,14 @@
  */
 
 const LOCALE_NS = 'settings.dshAmbient'
-const API = '/dsh-ambient/api'
+// API 基址随页面走：子路径反代（如 https://host/app/dsh/）下，绝对路径 /dsh-ambient/api
+// 会打到站点根而 404。与宿主官方客户端一致，用 document.baseURI 推导（dsh-sync#14 同款）。
+const API = (() => {
+  try {
+    const base = (typeof document !== 'undefined' && document.baseURI) || (typeof location !== 'undefined' ? location.href : '/')
+    return new URL('dsh-ambient/api', new URL('.', base)).pathname.replace(/\/+$/, '')
+  } catch { return '/dsh-ambient/api' }
+})()
 
 // 后台 AI 下载：指令文本在 src/index.js 的 DOWNLOAD_AGENT_PROMPT（host 侧发给 agent），客户端只 POST/轮询任务状态。
 
